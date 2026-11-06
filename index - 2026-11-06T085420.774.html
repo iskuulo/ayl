@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AL XIKMA SCHOOL - Attendance</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1b2a">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-navy: #0d1b2a;
+            --forest-green: #1a3a08;
+            --bright-green: #2e7d32;
+            --gold: #f9a825;
+            --light-green: #e8f5e9;
+            --light-blue: #e3f2fd;
+            --light-red: #ffebee;
+            --blue-dark: #0d47a1;
+            --red-dark: #b71c1c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            min-height: 100vh;
+            background: var(--dark-navy);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 16px 16px 32px;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(26,58,8,0.4) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(13,71,161,0.3) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 50%, rgba(249,168,37,0.05) 0%, transparent 70%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes bgPulse {
+            0%   { opacity: 0.7; transform: scale(1); }
+            100% { opacity: 1;   transform: scale(1.05); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(249,168,37,0.25);
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.4; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* ── CARD ── */
+        .container {
+            background: linear-gradient(160deg, #ffffff 0%, #f0f7f0 100%);
+            padding: 0;
+            border-radius: 24px;
+            box-shadow:
+                0 20px 60px rgba(0,0,0,0.6),
+                0 0 0 2px rgba(249,168,37,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            overflow: visible;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+            position: relative;
+            z-index: 1;
+            align-self: flex-start;
+            margin-top: 8px;
+        }
+        @keyframes slideUp {
+            0%   { opacity: 0; transform: translateY(40px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0)    scale(1); }
+        }
+
+        /* ── HEADER ── */
+        .card-header {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, #1a2f42 50%, var(--forest-green) 100%);
+            padding: 14px 20px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px 24px 0 0;
+        }
+        /* wave divider */
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 18px;
+            background: linear-gradient(160deg, #ffffff 0%, #f0f7f0 100%);
+            clip-path: ellipse(55% 100% at 50% 100%);
+        }
+        /* diagonal stripe */
+        .card-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent, transparent 20px,
+                rgba(255,255,255,0.02) 20px, rgba(255,255,255,0.02) 40px
+            );
+        }
+
+        /* Logo */
+        .logo-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+        .logo-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: conic-gradient(var(--gold), var(--bright-green), var(--gold), var(--bright-green), var(--gold));
+            animation: spinRing 6s linear infinite;
+        }
+        @keyframes spinRing { to { transform: rotate(360deg); } }
+        .logo-ring-inner {
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background: var(--dark-navy);
+        }
+        .logo {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            position: relative;
+            z-index: 1;
+            display: block;
+        }
+
+        h2 {
+            color: white;
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            position: relative;
+            margin: 0;
+        }
+        .header-subtitle {
+            color: var(--gold);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 2px;
+            position: relative;
+            opacity: 0.9;
+        }
+
+        /* ── BODY ── */
+        .card-body { padding: 12px 18px 16px; }
+
+        /* Live clock */
+        .time-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(13,27,42,0.08);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--dark-navy);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Section title */
+        .section-title {
+            color: var(--dark-navy);
+            font-weight: 900;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            letter-spacing: 1px;
+        }
+        .section-title::before,
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--forest-green), transparent);
+        }
+
+        /* Input groups */
+        .input-group {
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            padding-left: 3px;
+        }
+        .label-name  { color: var(--blue-dark); }
+        .label-shift { color: var(--bright-green); }
+        .label-pass  { color: var(--red-dark); }
+
+        select, input[type="password"] {
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23555' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 10px center;
+            padding-left: 32px;
+        }
+
+        #nameSelect {
+            border: 2.5px solid var(--blue-dark);
+            background-color: var(--light-blue);
+            color: var(--blue-dark);
+        }
+        #nameSelect:focus {
+            border-color: #1565c0;
+            box-shadow: 0 0 0 4px rgba(13,71,161,0.12);
+            background-color: white;
+        }
+
+        #shiftSelect {
+            border: 2.5px solid var(--bright-green);
+            background-color: var(--light-green);
+            color: var(--bright-green);
+        }
+        #shiftSelect:focus {
+            border-color: var(--forest-green);
+            box-shadow: 0 0 0 4px rgba(26,58,8,0.12);
+            background-color: white;
+        }
+
+        #passInput {
+            border: 2.5px solid var(--red-dark);
+            background-color: var(--light-red);
+            color: var(--red-dark);
+        }
+        #passInput:focus {
+            border-color: #c62828;
+            box-shadow: 0 0 0 4px rgba(183,28,28,0.12);
+            background-color: white;
+        }
+        #passInput::placeholder { color: rgba(183,28,28,0.45); }
+
+        /* GPS status bar */
+        .status-bar {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1.5px solid rgba(0,0,0,0.07);
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: #bbb;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,100% { transform: scale(1);   opacity: 1; }
+            50%      { transform: scale(1.4); opacity: 0.6; }
+        }
+        .status-dot.green  { background: var(--bright-green); }
+        .status-dot.red    { background: var(--red-dark); }
+        .status-dot.orange { background: #f57c00; }
+
+        #status {
+            font-weight: 800;
+            font-size: 12px;
+            color: #555;
+            text-align: left;
+            line-height: 1.3;
+            flex: 1;
+        }
+
+        /* Submit button */
+        .submit-btn {
+            background: linear-gradient(135deg, var(--forest-green) 0%, var(--bright-green) 100%);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+            font-weight: 900;
+            font-family: 'Cairo', sans-serif;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 16px rgba(26,58,8,0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+            border-radius: 12px;
+        }
+        .submit-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(26,58,8,0.5);
+        }
+        .submit-btn:not(:disabled):active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(26,58,8,0.4);
+        }
+        .submit-btn:disabled {
+            background: linear-gradient(135deg, #455a64, #607d8b) !important;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* ── FOOTER ── */
+        .card-footer {
+            background: var(--dark-navy);
+            padding: 9px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 0 0 24px 24px;
+        }
+        .footer-dot  { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); opacity: 0.5; }
+        .footer-text { color: rgba(255,255,255,0.35); font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* ── SUCCESS ── */
+        .success-screen { padding: 36px 28px; }
+        .success-icon {
+            font-size: 68px;
+            display: block;
+            animation: bounceIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 14px;
+        }
+        @keyframes bounceIn {
+            0%  { transform: scale(0.3); opacity: 0; }
+            60% { transform: scale(1.1); }
+            100%{ transform: scale(1);   opacity: 1; }
+        }
+        .success-name    { font-size: 18px; font-weight: 900; color: var(--dark-navy); margin-bottom: 6px; }
+        .success-message { font-size: 16px; font-weight: 800; color: var(--bright-green); min-height: 28px; }
+        .success-divider {
+            border: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--dark-navy), transparent);
+            margin: 18px 0; border-radius: 2px;
+        }
+        .success-footer-text { color: var(--dark-navy); font-size: 13px; font-weight: 800; margin-bottom: 10px; }
+        #timer { color: #888; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            top: 18px; left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: var(--dark-navy);
+            color: white;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 13px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+            z-index: 9999;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 4px solid var(--gold);
+            max-width: 300px;
+            text-align: center;
+        }
+        .toast.show  { transform: translateX(-50%) translateY(0); }
+        .toast.error { border-left-color: var(--red-dark); }
+
+        /* ───── LOCATING (RADAR) SCREEN ───── */
+        .locating-screen {
+            padding: 34px 20px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        .radar {
+            position: relative;
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(46,125,50,0.10) 0%, rgba(13,27,42,0.03) 75%);
+            border: 2px solid rgba(46,125,50,0.35);
+            overflow: hidden;
+            box-shadow: 0 0 0 6px rgba(46,125,50,0.06), inset 0 0 20px rgba(46,125,50,0.15);
+        }
+        .radar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle, transparent 0%, transparent 23%, rgba(46,125,50,0.25) 24%, transparent 25%),
+                radial-gradient(circle, transparent 0%, transparent 48%, rgba(46,125,50,0.25) 49%, transparent 50%),
+                radial-gradient(circle, transparent 0%, transparent 73%, rgba(46,125,50,0.25) 74%, transparent 75%),
+                linear-gradient(rgba(46,125,50,0.18) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(46,125,50,0.18) 1px, transparent 1px);
+            background-position: center, center, center, center, center;
+        }
+        .radar-sweep {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, rgba(46,125,50,0.75), rgba(46,125,50,0.15) 25%, transparent 45%);
+            animation: radarSpin 2.2s linear infinite;
+        }
+        @keyframes radarSpin { to { transform: rotate(360deg); } }
+        .radar-pin {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 22px;
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+        }
+        .radar-pulse {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 14px; height: 14px;
+            background: var(--gold);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulseRing 1.6s ease-out infinite;
+            z-index: 1;
+        }
+        @keyframes pulseRing {
+            0%   { box-shadow: 0 0 0 0 rgba(249,168,37,0.6); }
+            70%  { box-shadow: 0 0 0 34px rgba(249,168,37,0); }
+            100% { box-shadow: 0 0 0 0 rgba(249,168,37,0); }
+        }
+        .locating-text {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--dark-navy);
+            letter-spacing: 0.5px;
+        }
+        .locating-sub {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #789;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .locating-dots span {
+            display: inline-block;
+            animation: dotBlink 1.4s infinite;
+            font-weight: 900;
+            color: var(--bright-green);
+        }
+        .locating-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .locating-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotBlink { 0%,80%,100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+        /* ───── FAR-FROM-SCHOOL SCREEN ───── */
+        .far-screen {
+            padding: 34px 22px 28px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+        }
+        .far-icon-wrap {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(160deg, var(--light-red), #ffd9d9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 6px rgba(183,28,28,0.08);
+            animation: shakeIcon 2.4s ease-in-out infinite;
+            margin-bottom: 4px;
+        }
+        @keyframes shakeIcon {
+            0%, 85%, 100% { transform: rotate(0deg); }
+            88% { transform: rotate(-8deg); }
+            91% { transform: rotate(8deg); }
+            94% { transform: rotate(-6deg); }
+            97% { transform: rotate(4deg); }
+        }
+        .far-icon { font-size: 42px; }
+        .far-title {
+            font-size: 21px;
+            font-weight: 900;
+            color: var(--red-dark);
+            letter-spacing: 0.5px;
+        }
+        .far-message {
+            font-size: 17px;
+            font-weight: 800;
+            color: #b71c1c;
+            line-height: 1.6;
+            background: var(--light-red);
+            border: 1.5px solid rgba(183,28,28,0.2);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+        .far-distance {
+            font-size: 12px;
+            font-weight: 700;
+            color: #888;
+            letter-spacing: 0.5px;
+        }
+        .far-speaker {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--forest-green);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .retry-btn {
+            margin-top: 6px;
+            background: linear-gradient(135deg, var(--dark-navy) 0%, #1a2f42 100%);
+            color: white;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 900;
+            font-family: 'Cairo', sans-serif;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 16px rgba(13,27,42,0.35);
+            transition: all 0.25s ease;
+        }
+        .retry-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(13,27,42,0.45); }
+
+        /* ───── START GATE (single tap that both unlocks sound and opens the app) ───── */
+        .start-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+            background: linear-gradient(135deg, var(--dark-navy) 0%, #1a2f42 50%, var(--forest-green) 100%);
+            padding: 24px;
+            text-align: center;
+        }
+        .start-gate.hidden { display: none; }
+        .start-gate img.logo {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        .start-gate h2 {
+            color: #fff;
+            font-size: 19px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+        .start-gate .start-sub {
+            color: #b9c4cf;
+            font-size: 13px;
+            max-width: 260px;
+            line-height: 1.5;
+        }
+        .start-btn {
+            background: linear-gradient(135deg, var(--gold), #ffc94d);
+            color: var(--dark-navy);
+            border: none;
+            padding: 16px 46px;
+            border-radius: 40px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(249,168,37,0.45);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: soundBtnPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes soundBtnPulse {
+            0%,100% { transform: scale(1); }
+            50%     { transform: scale(1.05); }
+        }
+        .start-btn:active { transform: scale(0.96); }
+    </style>
+</head>
+<body>
+
+<!-- Start gate: single tap that unlocks sound AND opens the app -->
+<div class="start-gate" id="startGate">
+    <img src="10754.jpg" alt="Logo" class="logo">
+    <h2 id="startGateSchoolName">AL XIKMA SCHOOL</h2>
+    <div class="start-sub">Nidaamka Xaadirinta ee Macalimiinta</div>
+    <button class="start-btn" id="startGateBtn">🔊 Bilow</button>
+</div>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<div class="container" id="mainContainer">
+
+    <!-- Header -->
+    <div class="card-header">
+        <div class="logo-wrapper">
+            <div class="logo-ring"></div>
+            <div class="logo-ring-inner"></div>
+            <img src="10754.jpg" alt="Logo" class="logo">
+        </div>
+        <h2 id="displaySchoolName">AL XIKMA SCHOOL</h2>
+        <div class="header-subtitle">Nidaamka Xaadirinta</div>
+    </div>
+
+    <!-- Locating / Radar screen (shown first, while we search for the location) -->
+    <div class="locating-screen" id="locatingScreen">
+        <div class="radar">
+            <div class="radar-sweep"></div>
+            <div class="radar-pulse"></div>
+            <div class="radar-pin">📍</div>
+        </div>
+        <div class="locating-text" id="locatingText">Raadinaya Goobtaada<span class="locating-dots"><span>.</span><span>.</span><span>.</span></span></div>
+        <div class="locating-sub">Fadlan sug, waxaan hubinaynaa in aad iskuulka joogto</div>
+    </div>
+
+    <!-- Far-from-school screen -->
+    <div class="far-screen" id="farScreen">
+        <div class="far-icon-wrap"><span class="far-icon">🚫</span></div>
+        <div class="far-title">Ma Joogtid Iskuulka!</div>
+        <div class="far-message" id="farMessage">Fadlan marka hore iskuulka tag ama dib u soo gal appka.</div>
+        <div class="far-distance" id="farDistance"></div>
+        <div class="far-speaker">🔊 Codka wuu kuu sheegayaa fariinta</div>
+        <button class="retry-btn" id="retryBtn" onclick="location.reload()">🔄 Isku Day Mar Kale</button>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body" id="cardBody" style="display:none;">
+
+        <div class="time-badge">🕐 <span id="liveClock">--:--:--</span></div>
+
+        <div class="section-title">Xaadirinta Macalimiinta</div>
+
+        <!-- Name -->
+        <div class="input-group">
+            <div class="input-label label-name"><span>👤</span> Magacaaga</div>
+            <select id="nameSelect">
+                <option value="">-- Sugaya Magacyada... --</option>
+            </select>
+        </div>
+
+        <!-- Shift -->
+        <div class="input-group">
+            <div class="input-label label-shift"><span>🕐</span> Xaaladda</div>
+            <select id="shiftSelect">
+                <option value="">-- Dooro Xaaladda --</option>
+                <option value="subax imaansho">🌅 Subax Imaansho</option>
+                <option value="subax bixitaan">🌄 Subax Bixitaan</option>
+                <option value="galab imaansho">🌇 Galab Imaansho</option>
+                <option value="galab bixitaan">🌆 Galab Bixitaan</option>
+            </select>
+        </div>
+
+        <!-- Password -->
+        <div class="input-group">
+            <div class="input-label label-pass"><span>🔒</span> Password-kaaga</div>
+            <input type="password" id="passInput" placeholder="••••••••">
+        </div>
+
+        <!-- GPS status -->
+        <div class="status-bar">
+            <div class="status-dot" id="statusDot"></div>
+            <div id="status">Fadlan fur Location-ka ama GPS-ka...</div>
+        </div>
+
+        <button id="submitBtn" class="submit-btn" disabled>⏳ Hubinta Goobta...</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer">
+        <div class="footer-dot"></div>
+        <div class="footer-text">Al Xikma School System</div>
+        <div class="footer-dot"></div>
+    </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+    /* ── Particles ── */
+    const pc = document.getElementById('particles');
+    for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const sz = 2 + Math.random() * 4;
+        p.style.cssText = `left:${Math.random()*100}%;width:${sz}px;height:${sz}px;` +
+            `animation-duration:${6+Math.random()*10}s;animation-delay:${Math.random()*10}s`;
+        pc.appendChild(p);
+    }
+
+    /* ── Live Clock ── */
+    function updateClock() {
+        const n = new Date();
+        const el = document.getElementById('liveClock');
+        if (el) el.textContent =
+            String(n.getHours()).padStart(2,'0') + ':' +
+            String(n.getMinutes()).padStart(2,'0') + ':' +
+            String(n.getSeconds()).padStart(2,'0');
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    /* ── Toast ── */
+    function showToast(msg, isError = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast' + (isError ? ' error' : '');
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    /* ════════════════════════════════════════
+       VOICE SYSTEM
+       Codad la duubay (mp3) oo saafi u dhawaaqa
+       af-Soomaali — haddii fayl uu maqan yahay,
+       si toos ah waxaa loo isticmaalaa codka
+       browser-ka (speechSynthesis) si appku aanu
+       u jabin.
+
+       XASILLOONI: Faylasha mp3-ga waa in la geliyaa
+       galka ku xigga index.html-ka (root-ka), iyadoo
+       magacyadan oo kali ah la isticmaalayo:
+         ready.mp3             - "Waad ku mahadsan tahay, hadda iskuulka ayaad joogtaa, fadlan buuxi foomka."
+         far.mp3                - "Ma joogtid iskuulka, fadlan marka hore iskuulka tag ama dib u soo gal appka."
+         gps_denied.mp3         - "Fadlan oggolow location-ka si aad appka u isticmaasho."
+         empty_fields.mp3       - "Fadlan buuxi dhammaan khaanaha."
+         wrong_password.mp3     - "Password-kaagu waa khaldan yahay."
+         already_attended.mp3   - "Horaad ayaad isugu xaadirisay maalintan, hal mar oo keliya ayaa maalintii laguu ogol yahay."
+         success.mp3            - "Waad ku guulaysatay xaadiritaanka."
+    ════════════════════════════════════════ */
+    const VOICE_FILES = {
+        ready:             'ready.mp3',
+        far:               'far.mp3',
+        gps_denied:        'gps_denied.mp3',
+        empty_fields:      'empty_fields.mp3',
+        wrong_password:    'wrong_password.mp3',
+        already_attended:  'already_attended.mp3',
+        success:           'success.mp3'
+    };
+
+    let audioUnlocked = false;
+    let pendingVoice   = null; // { key, fallbackText } — queued if audio isn't unlocked yet
+
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        audioUnlocked = true;
+        try { const t = new Audio(); t.play().catch(() => {}); } catch (e) {}
+        if (pendingVoice) {
+            const pv = pendingVoice;
+            pendingVoice = null;
+            playVoice(pv.key, pv.fallbackText);
+        }
+    }
+
+    /* ── Start gate: hal taabasho oo keliya ah — waxay daartaa codka
+       (taasoo browser-ku u baahan yahay taabasho dhab ah) ka dibna
+       si tartiib ah ayey u qariyaan gate-ka, iyadoo appku (raadinta
+       goobta, iwm) horeba u socday gadaasha. ── */
+    const startGate = document.getElementById('startGate');
+    const startGateBtn = document.getElementById('startGateBtn');
+    if (startGateBtn) {
+        startGateBtn.addEventListener('click', () => {
+            unlockAudio();
+            if (startGate) startGate.classList.add('hidden');
+        });
+    }
+
+    /* Plays the recorded mp3 for `key`; if it's missing/fails to load, falls back
+       to browser text-to-speech reading `fallbackText`. */
+    function playVoice(key, fallbackText) {
+        if (!audioUnlocked) { pendingVoice = { key, fallbackText }; return; }
+        const src = key ? VOICE_FILES[key] : null;
+        if (src) {
+            const audio = new Audio(src);
+            let handled = false;
+            audio.addEventListener('error', () => { if (!handled) { handled = true; speak(fallbackText); } });
+            audio.play().catch(() => { if (!handled) { handled = true; speak(fallbackText); } });
+        } else {
+            speak(fallbackText);
+        }
+    }
+
+    /* ── Voice (Text-to-Speech) fallback — used only when a recorded mp3 isn't available ── */
+    function speak(text) {
+        try {
+            if (!('speechSynthesis' in window) || !text) return;
+            const clean = String(text).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
+            if (!clean) return;
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(clean);
+            utter.lang = 'so-SO';
+            utter.rate = 0.95;
+            utter.pitch = 1;
+            window.speechSynthesis.speak(utter);
+        } catch (e) { /* silently ignore unsupported browsers */ }
+    }
+
+    /* Switches between the radar "locating" screen, the "far from school"
+       screen, and the actual form — same 3-screen system as the driver app. */
+    let currentScreen = 'locating';
+    function showScreen(name) {
+        const locatingScreen = document.getElementById('locatingScreen');
+        const farScreen      = document.getElementById('farScreen');
+        const cardBody       = document.getElementById('cardBody');
+
+        locatingScreen.style.display = (name === 'locating') ? 'flex' : 'none';
+        farScreen.style.display      = (name === 'far')      ? 'flex' : 'none';
+        cardBody.style.display       = (name === 'ready')    ? 'block' : 'none';
+    }
+
+    /* ════════════════════════════════════════
+       ASALKA — Firebase + GPS + Submit Logic
+       (waxba lama badelin)
+    ════════════════════════════════════════ */
+    const firebaseConfig = {
+        apiKey: "AIzaSyBaYvZ8Wpx9-hNX1fyWKCxbA2ysvQCHYm4",
+        authDomain: "alxikma-attendance-bfac1.firebaseapp.com",
+        databaseURL: "https://xaadiriye-default-rtdb.firebaseio.com",
+        projectId: "alxikma-attendance-bfac1",
+        storageBucket: "alxikma-attendance-bfac1.appspot.com",
+        messagingSenderId: "782229241085",
+        appId: "1:782229241085:web:0245c6cae8da2080fd1294"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    /* ════════════════════════════════════════
+       DEVICE ID — aqoonsi gaar ah oo u gaar ah
+       taleefankan/browser-kan, si loo ogaado
+       haddii isla taleefan uu ugu xaadiriyo
+       dad kala duwan (calaamad khiyaano).
+    ════════════════════════════════════════ */
+    function getDeviceId() {
+        let id = localStorage.getItem('device_id');
+        if (!id) {
+            id = (crypto.randomUUID) ? crypto.randomUUID()
+                 : 'dev-' + Date.now() + '-' + Math.random().toString(36).slice(2, 12);
+            localStorage.setItem('device_id', id);
+        }
+        return id;
+    }
+    function sanitizeKey(str) {
+        return String(str).replace(/[.#$\[\]\/]/g, '_');
+    }
+    const DEVICE_ID = getDeviceId();
+
+    let TEACHER_DB = {};
+    let SETTINGS = {};
+
+    db.ref('settings').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            SETTINGS = data;
+            document.getElementById('displaySchoolName').innerText = SETTINGS.school_name || "AL XIKMA SCHOOL";
+            const gateNameEl = document.getElementById('startGateSchoolName');
+            if (gateNameEl) gateNameEl.innerText = SETTINGS.school_name || "AL XIKMA SCHOOL";
+            startGPSWatch();
+        }
+    });
+
+    db.ref('staff_list').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            TEACHER_DB = data;
+            const nameSelect = document.getElementById('nameSelect');
+            nameSelect.innerHTML = '<option value="">-- Dooro Magacaaga --</option>';
+            Object.keys(data).sort().forEach(name => {
+                nameSelect.innerHTML += `<option value="${name}">${name}</option>`;
+            });
+        }
+    });
+
+    function parseTime(t) {
+        if (!t) return 0;
+        let timeStr = String(t);
+        if (timeStr.includes("T")) timeStr = timeStr.split("T")[1];
+        const parts = timeStr.split(':');
+        const h = parseInt(parts[0]) || 0;
+        const m = parseInt(parts[1]) || 0;
+        return h * 60 + m;
+    }
+
+    function startGPSWatch() {
+        navigator.geolocation.watchPosition((pos) => {
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const shift = document.getElementById('shiftSelect').value.toLowerCase();
+
+            const R = 6371;
+            const lat1 = pos.coords.latitude, lon1 = pos.coords.longitude;
+            const dLat = (SETTINGS.lat - lat1) * Math.PI / 180;
+            const dLon = (SETTINGS.lon - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(SETTINGS.lat*Math.PI/180) * Math.sin(dLon/2)**2;
+            const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            const statusEl  = document.getElementById('status');
+            const dot       = document.getElementById('statusDot');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (dist <= SETTINGS.radius) {
+                /* ── Waad joogtaa iskuulka ── */
+                if (currentScreen !== 'ready') {
+                    currentScreen = 'ready';
+                    showScreen('ready');
+                    playVoice('ready', "Waad ku mahadsan tahay, hadda iskuulka waad joogtaa. Fadlan buuxi foomka si aad u xaadiratid.");
+                }
+
+                let canSubmit = true;
+                let timeStatusMsg = "";
+
+                if (String(SETTINGS.time_limit_on).toLowerCase() === "true" && shift !== "") {
+                    let start, end;
+                    if (shift === "subax imaansho")      { start = parseTime(SETTINGS.morn_start);     end = parseTime(SETTINGS.morn_end);     }
+                    else if (shift === "subax bixitaan") { start = parseTime(SETTINGS.morn_out_start); end = parseTime(SETTINGS.morn_out_end); }
+                    else if (shift === "galab imaansho") { start = parseTime(SETTINGS.aft_start);      end = parseTime(SETTINGS.aft_end);      }
+                    else if (shift === "galab bixitaan") { start = parseTime(SETTINGS.aft_out_start);  end = parseTime(SETTINGS.aft_out_end);  }
+
+                    if (currentTime < start)      { timeStatusMsg = "❌ Lama gaarin waqtigii " + shift + ".";    canSubmit = false; }
+                    else if (currentTime > end)   { timeStatusMsg = "❌ Waa la soo dhaafay waqtigii " + shift + "."; canSubmit = false; }
+                }
+
+                if (!canSubmit) {
+                    statusEl.innerText = timeStatusMsg;
+                    statusEl.style.color = "#bf360c";
+                    dot.className = 'status-dot red';
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "⛔ WAA XIRAN YAHAY";
+                } else {
+                    statusEl.innerText = "✅ Hadda iskuulka waad joogtaa .";
+                    statusEl.style.color = "#1a3a08";
+                    dot.className = 'status-dot green';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = "✅ XAADIRI";
+                }
+            } else {
+                /* ── Ma joogtid iskuulka ── */
+                const farMsg = SETTINGS.msg_far || "Ma joogtid iskuulka, fadlan marka hore iskuulka tag ama dib u soo gal appka.";
+                document.getElementById('farMessage').innerText = farMsg;
+                document.getElementById('farDistance').innerText = "Fogaanta aad ka joogto iskuulka: " + (dist*1000).toFixed(0) + " mitir";
+
+                if (currentScreen !== 'far') {
+                    currentScreen = 'far';
+                    showScreen('far');
+                    playVoice('far', farMsg);
+                }
+            }
+        }, (err) => {
+            /* Geolocation error (e.g. permission denied) */
+            const locatingText = document.getElementById('locatingText');
+            if (currentScreen !== 'locating' || locatingText.dataset.errorShown !== 'true') {
+                currentScreen = 'locating';
+                showScreen('locating');
+                locatingText.innerText = "⚠️ Fadlan oggolow Location-ka";
+                locatingText.dataset.errorShown = 'true';
+                playVoice('gps_denied', "Fadlan oggolow location-ka si aad appka u isticmaasho.");
+            }
+        }, { enableHighAccuracy: true });
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', () => {
+        const name  = document.getElementById('nameSelect').value;
+        const shift = document.getElementById('shiftSelect').value;
+        const pass  = document.getElementById('passInput').value;
+
+        if (!name || !shift || !pass) { showToast("❗ Fadlan buuxi dhamaan khaanadaha!", true); playVoice('empty_fields', "Fadlan buuxi dhammaan khaanaha."); return; }
+        if (!TEACHER_DB[name] || String(TEACHER_DB[name].pass) !== String(pass)) { showToast("🔒 Password-ku waa khaldan yahay!", true); playVoice('wrong_password', "Password-kaagu waa khaldan yahay."); return; }
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "⏳ La diiwaan geliyaa...";
+
+        const maanta = new Date().toLocaleDateString('en-GB');
+
+        db.ref('attendance').orderByChild('name').equalTo(name).once('value', (snapshot) => {
+            let horay_u_jiray = false;
+            snapshot.forEach((child) => {
+                const record = child.val();
+                const recordDate = new Date(record.time).toLocaleDateString('en-GB');
+                if (record.shift === shift && recordDate === maanta) horay_u_jiray = true;
+            });
+
+            if (horay_u_jiray) {
+                showToast("⚠️ Horey ayaad isugu xaadirisay " + shift + " maanta. Ustaad hal mar ayaa laguu ogol yahay maalintii!", true);
+                playVoice('already_attended', "Horaad ayaad isugu xaadirisay maalintan, hal mar oo keliya ayaa maalintii laguu ogol yahay.");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "✅ XAADIRI";
+            } else {
+                const newRecordRef = db.ref('attendance').push();
+                const uniqueId = newRecordRef.key;
+
+                newRecordRef.set({
+                    name: name,
+                    email: TEACHER_DB[name].email || "",
+                    shift: shift,
+                    device_id: DEVICE_ID,
+                    device_info: navigator.userAgent,
+                    time: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    /* Diiwaan gelinta device — haddii isla device_id uu ugu xaadiriyo
+                       dad badan oo kala duwan, waxaad ka arki kartaa 'devices/DEVICE_ID/names'
+                       gudaha Firebase Console — calaamad khiyaano. */
+                    db.ref('devices/' + sanitizeKey(DEVICE_ID) + '/names/' + sanitizeKey(name)).set(true);
+                    db.ref('devices/' + sanitizeKey(DEVICE_ID) + '/last_used').set(firebase.database.ServerValue.TIMESTAMP);
+                    db.ref('devices/' + sanitizeKey(DEVICE_ID) + '/history').push({
+                        name: name, shift: shift, time: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    playVoice('success', "Waad ku guulaysatay xaadiritaanka.");
+                    document.getElementById('mainContainer').innerHTML = `
+                        <div class="success-screen">
+                            <span class="success-icon" id="status-icon">⏳</span>
+                            <div class="success-name">Mudane Macalin ${name}</div>
+                            <div class="success-message" id="dynamic-msg">Fadlan sug hal daqiiqo jawaabta emailkaagana ka fiirso...</div>
+                            <hr class="success-divider">
+                            <div class="success-footer-text">${SETTINGS.footer_text || ""}</div>
+                            <div id="timer">Boggu wuxuu iskiis u xirmi doonaa...</div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="footer-dot"></div>
+                            <div class="footer-text">Al Xikma School System</div>
+                            <div class="footer-dot"></div>
+                        </div>`;
+
+                    /* Countdown */
+                    let secs = 300;
+                    const timerEl = document.getElementById('timer');
+                    const cd = setInterval(() => {
+                        secs--;
+                        if (timerEl) timerEl.textContent = "Boggu wuxuu xirmi doonaa " + secs + "s gudahood...";
+                        if (secs <= 0) clearInterval(cd);
+                    }, 1000);
+
+                    db.ref('attendance/' + uniqueId).on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        if (data && data.display_msg) {
+                            const msgEl  = document.getElementById('dynamic-msg');
+                            const iconEl = document.getElementById('status-icon');
+                            if (msgEl)  msgEl.innerHTML  = `<b style="color:#1a3a08;font-size:18px;">${data.display_msg}</b>`;
+                            if (iconEl) iconEl.innerHTML = "✅";
+                        }
+                    });
+
+                    setTimeout(() => { location.reload(); }, 300000);
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>
