@@ -642,6 +642,50 @@
             50%     { transform: scale(1.05); }
         }
         .start-btn:active { transform: scale(0.96); }
+        /* ── Xogta Darawalka ── */
+        .my-toggle {
+            margin-top: 14px; width: 100%; max-width: 320px;
+            background: linear-gradient(135deg, var(--bright-green) 0%, var(--forest-green) 100%);
+            color: #fff; border: none; border-radius: 12px; padding: 11px 16px;
+            font-size: 13px; font-weight: 900; font-family: 'Cairo', sans-serif; cursor: pointer;
+            box-shadow: 0 5px 16px rgba(26,58,8,0.3);
+        }
+        .my-panel { width: 100%; max-width: 340px; margin-top: 10px; text-align: left; }
+        .my-step { margin-bottom: 10px; }
+        #myNameSelect { border: 2.5px solid var(--blue-dark); background-color: var(--light-blue); color: var(--blue-dark); }
+        #myPassInput { border: 2.5px solid var(--red-dark); background-color: var(--light-red); color: var(--red-dark); }
+        .my-go {
+            margin-top: 8px; width: 100%; background: var(--dark-navy); color: #fff; border: none;
+            border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 900;
+            font-family: 'Cairo', sans-serif; cursor: pointer;
+        }
+        .my-go:disabled { opacity: .6; }
+        .my-error { color: var(--red-dark); font-size: 12px; font-weight: 800; min-height: 4px; text-align: center; }
+        .my-rank {
+            text-align: center; border-radius: 14px; padding: 12px 8px; margin: 6px 0 10px;
+            background: linear-gradient(135deg, #fff8e1, #ffecb3); border: 2px solid var(--gold);
+        }
+        .my-rank .big { font-size: 34px; font-weight: 900; color: var(--forest-green); line-height: 1.1; }
+        .my-rank .sm { font-size: 12px; font-weight: 800; color: #6d4c00; }
+        .my-name { text-align: center; font-weight: 900; color: var(--dark-navy); font-size: 15px; }
+        .my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .my-card { border-radius: 10px; padding: 8px; background: #fff; border: 1.5px solid #e0e0e0; text-align: center; }
+        .my-card b { display: block; font-size: 20px; color: var(--dark-navy); }
+        .my-card span { font-size: 10px; font-weight: 800; color: #666; text-transform: uppercase; letter-spacing: .5px; }
+        .my-card.bad b { color: var(--red-dark); }
+        .my-card.good b { color: var(--bright-green); }
+        .my-list { margin-top: 10px; max-height: 220px; overflow: auto; border: 1.5px solid #e0e0e0; border-radius: 10px; background: #fff; }
+        .my-list table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .my-list th { background: var(--dark-navy); color: #fff; padding: 6px 4px; position: sticky; top: 0; }
+        .my-list td { padding: 6px 4px; text-align: center; border-bottom: 1px solid #eee; font-weight: 700; }
+        .my-list td.bad { color: var(--red-dark); } .my-list td.good { color: var(--bright-green); }
+        .my-note { font-size: 10px; color: #777; text-align: center; margin-top: 6px; }
+
+        .my-title { margin: 14px 0 6px; font-size: 13px; font-weight: 900; color: var(--dark-navy); text-align: left; }
+        .my-empty { text-align: center; font-size: 12px; font-weight: 800; color: var(--bright-green); padding: 10px; background: var(--light-green); border-radius: 10px; }
+        .my-list td.blue { color: var(--blue-dark); }
+
+        .my-wrap { padding: 0 18px 18px; display: flex; flex-direction: column; align-items: center; background: transparent; }
     </style>
 </head>
 <body>
@@ -734,6 +778,25 @@
         </div>
 
         <button id="submitBtn" class="submit-btn" disabled>⏳ Hubinta Goobta...</button>
+    </div>
+
+
+    <!-- ═══ Xogta Macalinka (kaalinta + xogtiisa) ═══ -->
+    <div class="my-wrap" id="myWrap" style="display:none;">
+        <button class="my-toggle" id="myToggle" type="button">📊 Eeg Xogtayda &amp; Kaalintayda</button>
+        <div class="my-panel" id="myPanel" style="display:none;">
+            <div class="my-step" id="myStep1">
+                <div class="input-label label-name"><span>👤</span> Dooro magacaaga</div>
+                <select id="myNameSelect"><option value="">-- Dooro Magacaaga --</option></select>
+            </div>
+            <div class="my-step" id="myStep2" style="display:none;">
+                <div class="input-label label-pass"><span>🔒</span> Geli password-kaaga</div>
+                <input type="password" id="myPassInput" placeholder="••••••••">
+                <button class="my-go" id="myGoBtn" type="button">👁️ Eeg Xogta</button>
+            </div>
+            <div class="my-error" id="myError"></div>
+            <div class="my-result" id="myResult"></div>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -878,6 +941,8 @@
         locatingScreen.style.display = (name === 'locating') ? 'flex' : 'none';
         farScreen.style.display      = (name === 'far')      ? 'flex' : 'none';
         cardBody.style.display       = (name === 'ready')    ? 'block' : 'none';
+        const myWrapEl = document.getElementById('myWrap');
+        if (myWrapEl) myWrapEl.style.display = (name === 'locating') ? 'none' : 'flex';
     }
 
     /* ════════════════════════════════════════
@@ -1117,6 +1182,152 @@
             }
         });
     });
+
+    /* ════════════════════════════════════════
+       XOGTA MACALINKA — magac → password → xogtiisa + kaalinta
+       Xogta waxaa laga akhriyaa SHEET-KA (Apps Script Web App), sidii Panel-ka.
+       URL-ka: Settings sheet → web_app_url (ama halkan geli API_FALLBACK).
+    ════════════════════════════════════════ */
+    (function () {
+        const API_FALLBACK = '';   // tusaale: 'https://script.google.com/macros/s/XXXX/exec'
+        const $ = (id) => document.getElementById(id);
+        const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function apiUrl() { return (typeof SETTINGS !== 'undefined' && SETTINGS && SETTINGS.web_app_url) || API_FALLBACK; }
+
+        function fillNames() {
+            const sel = $('myNameSelect');
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">-- Dooro Magacaaga --</option>';
+            Object.keys(TEACHER_DB).sort().forEach((n) => {
+                const o = document.createElement('option');
+                o.value = n; o.textContent = n; sel.appendChild(o);
+            });
+            sel.value = cur;
+        }
+
+        $('myToggle').addEventListener('click', () => {
+            const p = $('myPanel');
+            const open = p.style.display === 'none';
+            p.style.display = open ? 'block' : 'none';
+            if (open) fillNames();
+        });
+
+        $('myNameSelect').addEventListener('change', () => {
+            $('myError').textContent = '';
+            $('myResult').innerHTML = '';
+            $('myPassInput').value = '';
+            $('myStep2').style.display = $('myNameSelect').value ? 'block' : 'none';
+            if ($('myNameSelect').value) $('myPassInput').focus();
+        });
+
+        $('myPassInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('myGoBtn').click(); });
+
+        $('myGoBtn').addEventListener('click', () => {
+            const name = $('myNameSelect').value;
+            const pass = $('myPassInput').value;
+            const err = $('myError');
+            err.textContent = '';
+            $('myResult').innerHTML = '';
+            if (!name) { err.textContent = '❗ Dooro magacaaga.'; return; }
+            if (!pass) { err.textContent = '❗ Geli password-kaaga.'; return; }
+
+            const url = apiUrl();
+            if (!url) { err.textContent = '⚠️ Server-ka lama xirin weli (web_app_url). La xiriir maamulka.'; return; }
+
+            const btn = $('myGoBtn');
+            btn.disabled = true; btn.textContent = '⏳ Soo raraya...';
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // simple request → CORS preflight ma jiro
+                body: JSON.stringify({ action: 'myData', name: name, pass: pass })
+            })
+            .then((r) => r.json())
+            .then((d) => {
+                btn.disabled = false; btn.textContent = '👁️ Eeg Xogta';
+                if (!d || d.ok !== true) {
+                    err.textContent = (d && d.message) || 'Cilad aan la garanayn.';
+                    if (d && /password/i.test(d.message || '') && typeof playVoice === 'function') playVoice('wrong_password', "Password-kaagu waa khaldan yahay.");
+                    return;
+                }
+                $('myPassInput').value = '';
+                render(d);
+            })
+            .catch((e) => {
+                btn.disabled = false; btn.textContent = '👁️ Eeg Xogta';
+                err.textContent = 'Cilad xiriirka: ' + (e && e.message ? e.message : e);
+            });
+        });
+
+        function statusClass(st) {
+            const s = String(st || '').toLowerCase();
+            if (s.indexOf('daahay') !== -1) return 'bad';
+            if (s.indexOf('fasax') !== -1 || s.indexOf('cudur') !== -1) return 'blue';
+            return 'good';
+        }
+        function statusLabel(r) {
+            const s = String(r.status || '');
+            if (!s) return '—';
+            return s;
+        }
+
+        function render(d) {
+            const st = d.stats || {};
+            const cur = d.currency || '$';
+            const money = (n) => cur + (Math.round((n || 0) * 100) / 100).toFixed(2);
+            const idx = d.rank ? d.rank - 1 : -1;
+            const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🏅';
+
+            let h = '<div class="my-name">' + esc(d.name) + '</div>' +
+                '<div class="my-rank"><div class="sm">' + medal + ' Kaalintaada bishan</div>' +
+                (d.rank
+                    ? '<div class="big">#' + d.rank + '</div><div class="sm">ee ' + d.of + ' macalin</div>'
+                    : '<div class="big">—</div><div class="sm">Wali xaadirin ma jirto bishan</div>') +
+                '</div>' +
+                '<div class="my-grid">' +
+                '<div class="my-card"><b>' + st.total + '</b><span>Xaadirin</span></div>' +
+                '<div class="my-card ' + (st.late ? 'bad' : 'good') + '"><b>' + st.late + '</b><span>Daahitaan</span></div>' +
+                '<div class="my-card ' + (st.lateMins ? 'bad' : 'good') + '"><b>' + st.lateMins + '</b><span>Daqiiqo daahay</span></div>' +
+                '<div class="my-card ' + (st.goyn ? 'bad' : 'good') + '"><b>' + st.goyn + '</b><span>Goyn</span></div>' +
+                (st.leave ? '<div class="my-card"><b style="color:#0d47a1">' + st.leave + '</b><span>Fasax (galin)</span></div>' : '') +
+                (d.penaltyOn ? '<div class="my-card ' + (st.totalPenalty ? 'bad' : 'good') + '" style="grid-column:1/-1"><b>' + money(st.totalPenalty) + '</b><span>Wadarta ganaaxa</span></div>' : '') +
+                '</div>';
+
+            // ── Xogta Xaadirinta ──
+            h += '<div class="my-title">📋 Xogta Xaadirinta</div>';
+            if (d.attendance && d.attendance.length) {
+                h += '<div class="my-list"><table><thead><tr><th>Maalin</th><th>Galin</th><th>Waqti</th><th>Xaalad</th>' +
+                     (d.penaltyOn ? '<th>Ganaax</th>' : '') + '</tr></thead><tbody>';
+                d.attendance.forEach((r) => {
+                    h += '<tr><td>' + esc(r.date) + '</td><td>' + esc(r.shift) + '</td><td>' + esc(r.time) + '</td>' +
+                         '<td class="' + statusClass(r.status) + '">' + esc(statusLabel(r)) + '</td>' +
+                         (d.penaltyOn ? '<td class="' + (r.penalty > 0 ? 'bad' : '') + '">' + (r.penalty > 0 ? money(r.penalty) : '—') + '</td>' : '') +
+                         '</tr>';
+                });
+                h += '</tbody></table></div>';
+            } else {
+                h += '<div class="my-note">Wali xaadirin ma jirto bishan.</div>';
+            }
+
+            // ── Xogta Goynta ──
+            h += '<div class="my-title">✂️ Xogta Goynta</div>';
+            if (d.goyn && d.goyn.length) {
+                h += '<div class="my-list"><table><thead><tr><th>Maalin</th><th>Galinta la seegay</th><th>Waqti</th>' +
+                     (d.penaltyOn ? '<th>Ganaax</th>' : '') + '</tr></thead><tbody>';
+                d.goyn.forEach((r) => {
+                    h += '<tr><td>' + esc(r.date) + '</td><td class="bad">' + esc(r.shift) + '</td><td>' + esc(r.time) + '</td>' +
+                         (d.penaltyOn ? '<td class="bad">' + money(r.penalty) + '</td>' : '') + '</tr>';
+                });
+                h += '</tbody></table></div>';
+            } else {
+                h += '<div class="my-empty">🎉 Goyn ma lihid bishan.</div>';
+            }
+
+            h += '<div class="my-note">' + esc(d.monthLabel) + ' • Ganaax ugu yar = kaalinta ugu sarraysa</div>';
+            $('myResult').innerHTML = h;
+        }
+    })();
 </script>
 </body>
 </html>
