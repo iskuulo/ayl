@@ -693,7 +693,7 @@
 <!-- Start gate: single tap that unlocks sound AND opens the app -->
 <div class="start-gate" id="startGate">
     <img src="10754.jpg" alt="Logo" class="logo">
-    <h2 id="startGateSchoolName">AL XIKMA SCHOOL</h2>
+    <h2 id="startGateSchoolName">AYL SECONDARY SCHOOL</h2>
     <div class="start-sub">Nidaamka Xaadirinta ee Macalimiinta</div>
     <button class="start-btn" id="startGateBtn">🔊 Bilow</button>
 </div>
@@ -713,7 +713,7 @@
             <div class="logo-ring-inner"></div>
             <img src="10754.jpg" alt="Logo" class="logo">
         </div>
-        <h2 id="displaySchoolName">AL XIKMA SCHOOL</h2>
+        <h2 id="displaySchoolName">AYL SECONDARY SCHOOL</h2>
         <div class="header-subtitle">Nidaamka Xaadirinta</div>
     </div>
 
@@ -802,7 +802,7 @@
     <!-- Footer -->
     <div class="card-footer">
         <div class="footer-dot"></div>
-        <div class="footer-text">Al Xikma School System</div>
+        <div class="footer-text">AYL SECONDARY SCHOOL System</div>
         <div class="footer-dot"></div>
     </div>
 </div>
@@ -989,9 +989,9 @@
         const data = snapshot.val();
         if (data) {
             SETTINGS = data;
-            document.getElementById('displaySchoolName').innerText = SETTINGS.school_name || "AL XIKMA SCHOOL";
+            document.getElementById('displaySchoolName').innerText = SETTINGS.school_name || "AYL SECONDARY SCHOOL";
             const gateNameEl = document.getElementById('startGateSchoolName');
-            if (gateNameEl) gateNameEl.innerText = SETTINGS.school_name || "AL XIKMA SCHOOL";
+            if (gateNameEl) gateNameEl.innerText = SETTINGS.school_name || "AYL SECONDARY SCHOOL";
             startGPSWatch();
         }
     });
@@ -1154,7 +1154,7 @@
                         </div>
                         <div class="card-footer">
                             <div class="footer-dot"></div>
-                            <div class="footer-text">Al Xikma School System</div>
+                            <div class="footer-text">AYL SECONDARY SCHOOL System</div>
                             <div class="footer-dot"></div>
                         </div>`;
 
